@@ -8,7 +8,7 @@ import { computeReadiness, hostFromDomain, siteNameFromDomain } from '@/lib/agen
 import { productConfig } from '@/lib/mock-data/merchant';
 import { Globe2 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 const MIN_DURATION = 3400;
 
@@ -45,15 +45,12 @@ export function ScanningPage() {
   const [storefront, setStorefront] = useState(hostFromDomain(query));
   const [personas, setPersonas] = useState<BuyerPersona[]>(buyerPersonas);
   const [metrics, setMetrics] = useState<SwarmMetrics | null>(null);
-  const started = useRef(false);
 
   useEffect(() => {
     if (!query) {
       router.replace('/discover');
       return;
     }
-    if (started.current) return;
-    started.current = true;
 
     const startedAt = Date.now();
     let cancelled = false;
