@@ -7,6 +7,7 @@ import {
   ArrowUpRight,
   Bell,
   BookOpen,
+  Bot,
   Building2,
   ChartNoAxesCombined,
   Check,
@@ -20,6 +21,7 @@ import {
   Mountain,
   Plug,
   ScanLine,
+  Search,
   Settings2,
   ShieldCheck,
   Terminal,
@@ -31,8 +33,10 @@ import { useEffect, useState } from 'react';
 import { signOut } from '@/app/auth/actions';
 import { useApp } from './app-provider';
 const navigation = [
+  { href: '/discover', label: 'Discover', icon: Search },
   { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
   { href: '/scan', label: 'Readiness Scan', icon: ScanLine },
+  { href: '/agent-scan', label: 'Live Agent Scan', icon: Bot },
   { href: '/sessions', label: 'Sessions', icon: Activity },
   { href: '/security', label: 'Security', icon: ShieldCheck },
   { href: '/replays', label: 'Replays', icon: CirclePlay },
@@ -340,6 +344,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     pathname === '/' ||
     pathname === '/login' ||
     pathname === '/signup' ||
+    pathname === '/discover' ||
     pathname.startsWith('/auth/')
   )
     return <>{children}</>;

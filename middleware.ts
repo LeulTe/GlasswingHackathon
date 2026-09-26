@@ -4,7 +4,10 @@ import { supabaseConfig } from '@/lib/supabase/config';
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
-  const publicPage = ['/', '/login', '/signup'].includes(path) || path.startsWith('/auth/');
+  const publicPage =
+    ['/', '/login', '/signup', '/discover'].includes(path) ||
+    path.startsWith('/auth/') ||
+    path.startsWith('/api/agent-scan');
   let response = NextResponse.next({ request });
   const config = supabaseConfig();
   let authenticated = false;

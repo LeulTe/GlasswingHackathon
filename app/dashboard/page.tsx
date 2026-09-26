@@ -21,6 +21,7 @@ import type { Finding, ReadinessMetric, ReadinessTrendScanResult, Recommendation
 import {
   ArrowRight,
   ArrowUpRight,
+  Bot,
   CheckCheck,
   ChevronRight,
   Code2,
@@ -39,7 +40,7 @@ const metricFetchers: Record<ReadinessMetric['icon'], () => Promise<ReadinessMet
   compatibility: getCompatibilityMetric,
 };
 export default function Dashboard() {
-  const { lastScanned, scanNumber, environment } = useApp();
+  const { lastScanned, scanNumber, environment, scanSite } = useApp();
   const [categoryMetrics, setCategoryMetrics] = useState<ReadinessMetric[]>(readinessMetrics);
   const [findings, setFindings] = useState<Finding[]>(initialFindings);
   const [recommendations, setRecommendations] = useState<Recommendation[]>(initialRecommendations);
@@ -70,17 +71,42 @@ export default function Dashboard() {
     <>
       <PageHeading
         title="Good morning, Jordan"
-        subtitle="Here's how evertrailoutdoors.com is performing for autonomous shoppers."
+        subtitle={
+          scanSite
+            ? `Here's how ${scanSite.domain} is performing for autonomous shoppers.`
+            : "Here's how evertrailoutdoors.com is performing for autonomous shoppers."
+        }
         action={
           <>
             <div className="last-scanned">
               <span>Last scanned</span>
-              <strong>{lastScanned}</strong>
+              <strong>{scanSite?.scannedAt ?? lastScanned}</strong>
             </div>
             <ScanButton outline />
           </>
         }
       />
+      {scanSite && (
+        <div className="scan-banner">
+          <span className="icon-box blue">
+            <Bot size={17} />
+          </span>
+          <div>
+            <strong>
+              Live agent scan · {scanSite.name} ({scanSite.domain})
+            </strong>
+            <p>
+              {scanSite.succeeded} of {scanSite.goalCount} shopping goals completed · readiness{' '}
+              {scanSite.score}/100 · {scanSite.mode}
+              {scanSite.model ? ` · ${scanSite.model}` : ''}
+            </p>
+          </div>
+          <Link href="/discover">
+            Run another scan
+            <ArrowRight size={13} />
+          </Link>
+        </div>
+      )}
       <Card className="readiness-overview">
         <CardHeader
           title="Agent readiness overview"
@@ -99,7 +125,7 @@ export default function Dashboard() {
           }
         />
         <div className="readiness-overview-body">
-          <ScoreRing score={74} />
+          <ScoreRing score={scanSite?.score ?? 74} />
           <div className="readiness-summary">
             <div className="improvement">
               <TrendingUp size={13} />

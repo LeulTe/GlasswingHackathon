@@ -276,7 +276,7 @@ export function LoginPage({
       if (result.error) setError(result.error);
       if (result.message) setMessage(result.message);
       if (result.success) {
-        router.replace('/dashboard');
+        router.replace('/discover');
         router.refresh();
       }
     } catch {
