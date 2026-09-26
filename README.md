@@ -35,7 +35,9 @@ Scan requests remain attached to the root app provider while navigating between 
 
 The older `/api/agent-scan` execution endpoint is retired with HTTP 410. Its automatic scripted fallback and shopper self-grading are not part of the connected workflow. The older category-report APIs remain separate legacy demo adapters and do not supply the connected dashboard.
 
-**Security, Analytics, Integrations, and Settings** still contain explicitly labeled demo data/configuration. Their policy/settings controls do not change the runner's permissions. Actual shopper permissions come from the server-configured environment and merchant-reviewed scenarios. These sections do not claim measured checkout or payment outcomes.
+**Security, Analytics, Integrations, Settings, and Demand Signal** still contain explicitly labeled demo data/configuration. Their policy/settings controls do not change the runner's permissions. Actual shopper permissions come from the server-configured environment and merchant-reviewed scenarios. These sections do not claim measured checkout or payment outcomes.
+
+Demand Signal at `/demand-signal` preserves the product-concept simulation from main. Its reactions and scores are hand-authored fixtures. Legacy visual replays remain available for known `SES-…` demo IDs and are explicitly labeled as demos; recorded Gateway sessions use UUIDs.
 
 ## Architecture
 

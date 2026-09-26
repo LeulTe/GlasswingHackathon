@@ -2,6 +2,7 @@
 import { useRouter } from 'next/navigation';
 import { useGateway } from '@/components/gateway/provider';
 import { securityPolicies } from '@/lib/mock-data/security';
+import { getSecurityPoliciesReport } from '@/lib/security-policies';
 import type { Environment, SecurityPolicy } from '@/lib/types';
 import { CheckCircle2, X } from 'lucide-react';
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
@@ -50,6 +51,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const t = setTimeout(() => setToast(''), 5500);
     return () => clearTimeout(t);
   }, [toast]);
+  useEffect(() => {
+    let cancelled = false;
+    getSecurityPoliciesReport().then((result) => {
+      if (!cancelled) setPolicies(result.policies);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const runScan = () => router.push('/discover');
   return (
     <AppContext.Provider

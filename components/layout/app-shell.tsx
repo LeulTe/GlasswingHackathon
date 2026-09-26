@@ -24,6 +24,7 @@ import {
   Settings2,
   ShieldCheck,
   Terminal,
+  Users,
   Wand2,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -36,6 +37,7 @@ const navigation = [
   { href: '/discover', label: 'Discover', icon: Search },
   { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
   { href: '/scan', label: 'Readiness Scan', icon: ScanLine },
+  { href: '/demand-signal', label: 'Demand Signal', icon: Users },
   { href: '/sessions', label: 'Sessions', icon: Activity },
   { href: '/security', label: 'Security', icon: ShieldCheck },
   { href: '/replays', label: 'Replays', icon: CirclePlay },

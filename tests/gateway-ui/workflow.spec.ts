@@ -298,3 +298,29 @@ test('API authorization remains enforced independently of the public discovery p
     await context.close();
   }
 });
+
+test('merged main retains demand simulation, visual demo replay and reporting pages', async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto(`${appOrigin}/demand-signal`);
+  await expect(page.getByRole('heading', { name: 'Demand Signal', exact: true })).toBeVisible();
+  await expect(
+    page.getByText('Demo simulation using fixture persona reactions and scores.'),
+  ).toBeVisible();
+  await page.goto(`${appOrigin}/replays/SES-10482`);
+  await expect(
+    page.getByText('Demo replay — illustrative storefront actions, not a recorded Gateway scan.'),
+  ).toBeVisible();
+  await page.getByRole('button', { name: 'Watch visual replay' }).click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  for (const [route, heading] of [
+    ['analytics', 'Analytics'],
+    ['security', 'Security'],
+  ]) {
+    await page.goto(`${appOrigin}/${route}`);
+    await expect(page.getByRole('heading', { name: heading, exact: true })).toBeVisible();
+  }
+  expect(errors).toEqual([]);
+});
