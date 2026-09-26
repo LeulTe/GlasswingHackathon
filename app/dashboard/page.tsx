@@ -7,9 +7,14 @@ import { useApp } from '@/components/layout/app-provider';
 import { ScanButton } from '@/components/layout/app-shell';
 import { PageHeading } from '@/components/ui/page-heading';
 import { Button, Card, CardHeader } from '@/components/ui/primitives';
+import { getCheckoutMetric } from '@/lib/checkout';
+import { getCompatibilityMetric } from '@/lib/compatibility';
+import { getDiscoveryMetric } from '@/lib/discovery';
 import { merchant } from '@/lib/mock-data/merchant';
 import { recommendations } from '@/lib/mock-data/recommendations';
 import { findings, readinessMetrics } from '@/lib/mock-data/scans';
+import { getSecurityMetric } from '@/lib/security';
+import type { ReadinessMetric } from '@/lib/types';
 import {
   ArrowRight,
   ArrowUpRight,
@@ -23,8 +28,26 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+const metricFetchers: Record<ReadinessMetric['icon'], () => Promise<ReadinessMetric>> = {
+  discovery: getDiscoveryMetric,
+  checkout: getCheckoutMetric,
+  security: getSecurityMetric,
+  compatibility: getCompatibilityMetric,
+};
 export default function Dashboard() {
   const { lastScanned, scanNumber, environment } = useApp();
+  const [categoryMetrics, setCategoryMetrics] = useState<ReadinessMetric[]>(readinessMetrics);
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all(categoryMetrics.map((m) => metricFetchers[m.icon]())).then((metrics) => {
+      if (!cancelled) setCategoryMetrics(metrics);
+    });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   return (
     <>
       <PageHeading
@@ -134,7 +157,7 @@ export default function Dashboard() {
         <span>Compared with previous scan</span>
       </div>
       <div className="readiness-grid">
-        {readinessMetrics.map((metric) => (
+        {categoryMetrics.map((metric) => (
           <ReadinessCard key={metric.name} metric={metric} />
         ))}
       </div>

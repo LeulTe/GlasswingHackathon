@@ -1069,6 +1069,25 @@ svg {
 .progress-track > span.rose {
   background: #d58c91;
 }
+.readiness-meta {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #eff2f6;
+}
+.readiness-meta-total {
+  display: block;
+  font-size: 11px;
+  font-weight: 550;
+  color: #506b9a;
+  margin-bottom: 5px;
+}
+.readiness-meta-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #727885;
+  line-height: 1.8;
+}
 .dashboard-lower {
   display: grid;
   grid-template-columns: 1.34fr 1fr 1fr;
