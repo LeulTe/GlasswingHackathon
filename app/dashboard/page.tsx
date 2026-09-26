@@ -10,11 +10,14 @@ import { Button, Card, CardHeader } from '@/components/ui/primitives';
 import { getCheckoutMetric } from '@/lib/checkout';
 import { getCompatibilityMetric } from '@/lib/compatibility';
 import { getDiscoveryMetric } from '@/lib/discovery';
+import { getTopFindings } from '@/lib/findings';
 import { merchant } from '@/lib/mock-data/merchant';
-import { recommendations } from '@/lib/mock-data/recommendations';
-import { findings, readinessMetrics } from '@/lib/mock-data/scans';
+import { recommendations as initialRecommendations } from '@/lib/mock-data/recommendations';
+import { findings as initialFindings, readinessMetrics } from '@/lib/mock-data/scans';
+import { getNextSteps } from '@/lib/next-steps';
+import { getReadinessTrend, mockReadinessTrendResult, toChartData } from '@/lib/readiness-trend';
 import { getSecurityMetric } from '@/lib/security';
-import type { ReadinessMetric } from '@/lib/types';
+import type { Finding, ReadinessMetric, ReadinessTrendScanResult, Recommendation } from '@/lib/types';
 import {
   ArrowRight,
   ArrowUpRight,
@@ -38,16 +41,31 @@ const metricFetchers: Record<ReadinessMetric['icon'], () => Promise<ReadinessMet
 export default function Dashboard() {
   const { lastScanned, scanNumber, environment } = useApp();
   const [categoryMetrics, setCategoryMetrics] = useState<ReadinessMetric[]>(readinessMetrics);
+  const [findings, setFindings] = useState<Finding[]>(initialFindings);
+  const [recommendations, setRecommendations] = useState<Recommendation[]>(initialRecommendations);
+  const [trend, setTrend] = useState<ReadinessTrendScanResult>(mockReadinessTrendResult);
   useEffect(() => {
     let cancelled = false;
     Promise.all(categoryMetrics.map((m) => metricFetchers[m.icon]())).then((metrics) => {
       if (!cancelled) setCategoryMetrics(metrics);
+    });
+    getTopFindings().then((result) => {
+      if (!cancelled) setFindings(result);
+    });
+    getNextSteps().then((result) => {
+      if (!cancelled) setRecommendations(result);
+    });
+    getReadinessTrend().then((result) => {
+      if (!cancelled) setTrend(result);
     });
     return () => {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  const trendPoints = trend.points;
+  const latestScore = trendPoints.at(-1)?.score ?? 0;
+  const trendChange = latestScore - (trendPoints[0]?.score ?? latestScore);
   return (
     <>
       <PageHeading
@@ -174,7 +192,7 @@ export default function Dashboard() {
           />
           <div className="findings-subhead">
             <span>PRIORITIZED BY IMPACT</span>
-            <span>4 open issues</span>
+            <span>{findings.length} open issues</span>
           </div>
           {findings.map((finding, i) => (
             <FindingRow key={finding.id} finding={finding} index={i} />
@@ -191,28 +209,36 @@ export default function Dashboard() {
         >
           <div className="trend-value">
             <strong>
-              74<span>/ 100</span>
+              {latestScore}
+              <span>/ 100</span>
             </strong>
-            <span className="positive">
+            <span className={trendChange >= 0 ? 'positive' : 'negative'}>
               <TrendingUp size={13} />
-              +13 points
+              {trendChange >= 0 ? '+' : ''}
+              {trendChange} points
             </span>
           </div>
-          <ReadinessTrendChart />
+          <ReadinessTrendChart data={toChartData(trend)} />
           <div className="chart-caption">
             <span className="chart-key" />
             Readiness score
             <span className="chart-key target" />
-            Target: 80
+            Target: {trend.target}
           </div>
           <p className="trend-caption">
-            Readiness improved <strong>13 points</strong> across the last five scans.
+            Readiness {trendChange >= 0 ? 'improved' : 'declined'}{' '}
+            <strong>{Math.abs(trendChange)} points</strong> across the last {trendPoints.length}{' '}
+            scans.
           </p>
         </ChartCard>
         <Card className="next-steps">
           <CardHeader
             title="Recommended next steps"
-            action={<span className="subtle-badge">4 actions</span>}
+            action={
+              <span className="subtle-badge">
+                {Math.min(4, recommendations.length)} actions
+              </span>
+            }
           />
           <p className="next-steps-description">Small changes. More successful shoppers.</p>
           <div>
@@ -230,13 +256,7 @@ export default function Dashboard() {
                   )}
                 </span>
                 <span>
-                  <strong>
-                    {i === 0
-                      ? 'Add structured variant metadata'
-                      : i === 2
-                        ? 'Require confirmation above $250'
-                        : r.title}
-                  </strong>
+                  <strong>{r.title}</strong>
                   <small>
                     <span className={i < 2 ? 'impact-high' : 'impact-medium'} />
                     {i < 2 ? 'High' : 'Medium'} impact<span>·</span>

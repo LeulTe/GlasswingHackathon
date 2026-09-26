@@ -125,6 +125,51 @@ export interface Recommendation {
   category: string;
   code: string;
 }
+
+/**
+ * Contract for the agent's top-findings report: the most critical, highest-
+ * impact issues found on the merchant's site, ranked by the agent. Post
+ * matching this shape to `/api/findings`; `lib/findings.ts` maps it onto the
+ * "Top findings" widget.
+ */
+export interface FindingsScanResult {
+  scanId: string;
+  scannedAt: string;
+  findings: Finding[];
+}
+
+/** One historical scan's overall readiness score, for the readiness-trend chart. */
+export interface ReadinessTrendPoint {
+  label: string;
+  date: string;
+  score: number;
+}
+
+/**
+ * Contract for the agent readiness trend: the merchant's overall readiness
+ * score across its last 5 scans. Post matching this shape to
+ * `/api/readiness-trend`; `lib/readiness-trend.ts` maps it onto the "Agent
+ * readiness trend" chart. `points` should be ordered oldest to newest and
+ * capped at the last 5 scans.
+ */
+export interface ReadinessTrendScanResult {
+  scanId?: string;
+  scannedAt?: string;
+  target: number;
+  points: ReadinessTrendPoint[];
+}
+
+/**
+ * Contract for the agent's recommended next steps: the highest-value fixes,
+ * benchmarked against how well-executed comparable merchant sites handle the
+ * same issue. Post matching this shape to `/api/next-steps`;
+ * `lib/next-steps.ts` maps it onto the "Recommended next steps" widget.
+ */
+export interface NextStepsScanResult {
+  scanId: string;
+  scannedAt: string;
+  recommendations: Recommendation[];
+}
 export interface AgentProfile {
   name: string;
   short: string;
