@@ -36,14 +36,17 @@ function phaseFor(progress: number, done: boolean, error: string): string {
 export function ScanningPage() {
   const router = useRouter();
   const params = useSearchParams();
-  const { setScanSite } = useApp();
+  const { setScanSite, scanConfig } = useApp();
   const query = params.get('q') ?? '';
   const provider = params.get('provider') ?? undefined;
   const [progress, setProgress] = useState(0);
   const [done, setDone] = useState(false);
   const [error, setError] = useState('');
   const [storefront, setStorefront] = useState(hostFromDomain(query));
-  const [personas, setPersonas] = useState<BuyerPersona[]>(buyerPersonas);
+  const [personas, setPersonas] = useState<BuyerPersona[]>(() => {
+    const selected = buyerPersonas.filter((persona) => scanConfig.personaIds.includes(persona.id));
+    return selected.length ? selected : buyerPersonas;
+  });
   const [metrics, setMetrics] = useState<SwarmMetrics | null>(null);
 
   useEffect(() => {
@@ -61,7 +64,7 @@ export function ScanningPage() {
 
     (async () => {
       try {
-        const intake = await runIntake(query);
+        const intake = await runIntake(query, scanConfig);
         if (cancelled) return;
         setStorefront(intake.storefrontLabel);
         setPersonas(intake.personas);
@@ -109,7 +112,7 @@ export function ScanningPage() {
       cancelled = true;
       clearInterval(interval);
     };
-  }, [query, provider, router, setScanSite]);
+  }, [query, provider, router, setScanSite, scanConfig]);
 
   const phase = phaseFor(progress, done, error);
 
