@@ -1,9 +1,13 @@
 'use client';
+import { useApp } from '@/components/layout/app-provider';
 import { GatewayLogo } from '@/components/layout/app-shell';
 import { Button, Select, StatusBadge } from '@/components/ui/primitives';
+import { budgetBands, focusOptions, regions } from '@/lib/agent/intake';
+import { buyerPersonas } from '@/lib/agent/personas';
 import { directory } from '@/lib/mock-data/directory';
 import { productConfig } from '@/lib/mock-data/merchant';
-import { Bot, Search, Sparkles, X } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Bot, Search, Settings2, Sparkles, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -15,13 +19,20 @@ interface ProviderInfo {
   configured: boolean;
 }
 
+const SETUP_KEY = 'gateway_scan_setup_skipped';
+
 export function DiscoverPage() {
   const router = useRouter();
+  const { scanConfig, setScanConfig } = useApp();
   const [query, setQuery] = useState('');
   const [provider, setProvider] = useState('sciforium');
   const [providers, setProviders] = useState<ProviderInfo[]>([]);
+  const [setupOpen, setSetupOpen] = useState(true);
 
   useEffect(() => {
+    if (typeof window !== 'undefined' && window.localStorage.getItem(SETUP_KEY) === '1') {
+      setSetupOpen(false);
+    }
     fetch('/api/agent-scan')
       .then((response) => response.json())
       .then((payload: { providers: ProviderInfo[]; defaultProvider: string }) => {
@@ -30,6 +41,25 @@ export function DiscoverPage() {
       })
       .catch(() => undefined);
   }, []);
+
+  const toggleFocus = (focus: string) => {
+    const focuses = scanConfig.focuses.includes(focus)
+      ? scanConfig.focuses.filter((item) => item !== focus)
+      : [...scanConfig.focuses, focus];
+    setScanConfig({ ...scanConfig, focuses });
+  };
+
+  const togglePersona = (id: string) => {
+    const personaIds = scanConfig.personaIds.includes(id)
+      ? scanConfig.personaIds.filter((item) => item !== id)
+      : [...scanConfig.personaIds, id];
+    setScanConfig({ ...scanConfig, personaIds });
+  };
+
+  const skipSetup = () => {
+    setSetupOpen(false);
+    if (typeof window !== 'undefined') window.localStorage.setItem(SETUP_KEY, '1');
+  };
 
   const startScan = (value?: string) => {
     const term = (value ?? query).trim();
@@ -56,10 +86,93 @@ export function DiscoverPage() {
         </div>
         <h1>Search a storefront. Send in the buyer agents.</h1>
         <p>
-          Enter a merchant domain or a product goal. You’ll be taken to a live scan while an intake
-          stage builds shared context and multiple buyer agents shop it in parallel — then straight
-          into the storefront dashboard.
+          Set your scan brief, enter a merchant domain, and multiple autonomous buyer agents shop it
+          in parallel — then you land straight in the storefront dashboard.
         </p>
+
+        <div className={cn('setup-panel', !setupOpen && 'collapsed')}>
+          <div className="setup-head">
+            <span className="setup-title">
+              <Settings2 size={14} />
+              Scan brief
+            </span>
+            <div className="setup-head-right">
+              <span className="setup-summary">
+                {scanConfig.focuses.length || 0} focus · {scanConfig.personaIds.length} agents · $
+                {scanConfig.budget} · {scanConfig.region}
+              </span>
+              <button className="setup-toggle" onClick={() => setSetupOpen((open) => !open)}>
+                {setupOpen ? 'Hide' : 'Configure'}
+              </button>
+            </div>
+          </div>
+
+          {setupOpen && (
+            <div className="setup-body">
+              <div className="setup-group">
+                <span className="setup-label">What to test</span>
+                <div className="setup-chips">
+                  {focusOptions.map((focus) => (
+                    <button
+                      key={focus}
+                      className={cn('setup-chip', scanConfig.focuses.includes(focus) && 'active')}
+                      onClick={() => toggleFocus(focus)}
+                    >
+                      {focus}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="setup-group">
+                <span className="setup-label">Buyer agents</span>
+                <div className="setup-chips">
+                  {buyerPersonas.map((persona) => (
+                    <button
+                      key={persona.id}
+                      className={cn(
+                        'setup-chip',
+                        scanConfig.personaIds.includes(persona.id) && 'active',
+                      )}
+                      onClick={() => togglePersona(persona.id)}
+                    >
+                      <span className={`setup-dot setup-${persona.color}`}>{persona.short}</span>
+                      {persona.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="setup-row">
+                <label className="setup-field">
+                  <span className="setup-label">Budget</span>
+                  <Select
+                    label="Budget"
+                    value={String(scanConfig.budget)}
+                    onChange={(value) => setScanConfig({ ...scanConfig, budget: Number(value) })}
+                    options={budgetBands.map((band) => ({
+                      value: String(band.value),
+                      label: band.label,
+                    }))}
+                  />
+                </label>
+                <label className="setup-field">
+                  <span className="setup-label">Region</span>
+                  <Select
+                    label="Region"
+                    value={scanConfig.region}
+                    onChange={(value) => setScanConfig({ ...scanConfig, region: value })}
+                    options={regions}
+                  />
+                </label>
+              </div>
+
+              <button className="setup-skip" onClick={skipSetup}>
+                Skip setup — use defaults
+              </button>
+            </div>
+          )}
+        </div>
 
         <div className="portal-controls">
           <div className="discover-search">
@@ -123,7 +236,8 @@ export function DiscoverPage() {
       </section>
 
       <p className="portal-hint">
-        Your scan runs on the next page, then opens the storefront dashboard automatically.
+        Your brief feeds the intake API; the buyer agents run on the next page, then open the
+        storefront dashboard automatically.
       </p>
     </div>
   );
