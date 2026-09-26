@@ -1,6 +1,7 @@
 'use client';
 import { latestScan } from '@/lib/mock-data/scans';
 import { securityPolicies } from '@/lib/mock-data/security';
+import { getSecurityPoliciesReport } from '@/lib/security-policies';
 import type { Environment, SecurityPolicy } from '@/lib/types';
 import { CheckCircle2, X } from 'lucide-react';
 import {
@@ -53,6 +54,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     },
     [],
   );
+  useEffect(() => {
+    let cancelled = false;
+    getSecurityPoliciesReport().then((result) => {
+      if (!cancelled) setPolicies(result.policies);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const runScan = () => {
     if (scanLock.current) return;
     scanLock.current = true;
