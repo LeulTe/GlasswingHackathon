@@ -17,6 +17,82 @@ export interface ReadinessMetric {
   status: string;
   icon: 'discovery' | 'checkout' | 'security' | 'compatibility';
   change: number;
+  /** Populated once a scanning agent's result has been mapped in; drives the optional breakdown list on the card. */
+  meta?: {
+    total: number;
+    passing: number;
+    unitLabel: string;
+    breakdown?: { name: string; total: number; passing: number }[];
+  };
+}
+
+/** Shared issue shape reported by any readiness-scanning agent. */
+export interface ScanIssue {
+  title: string;
+  description: string;
+  affected: number;
+}
+
+/**
+ * Contract for the discoverability-scanning agent's output. The agent crawls a
+ * merchant site and reports what fraction of products/content it could find
+ * and parse. `lib/discovery.ts` maps this shape onto a `ReadinessMetric` for
+ * display; anything posting to `/api/discovery` should match this shape.
+ */
+export interface DiscoveryScanResult {
+  scanId: string;
+  scannedAt: string;
+  totalProducts: number;
+  discoverableProducts: number;
+  previousDiscoverablePercent?: number;
+  categories: { name: string; total: number; discoverable: number }[];
+  issues?: ScanIssue[];
+}
+
+/**
+ * Contract for the checkout-scanning agent's output: what fraction of
+ * purchase flows an agent can complete end-to-end. Post matching this shape
+ * to `/api/checkout`; `lib/checkout.ts` maps it onto a `ReadinessMetric`.
+ */
+export interface CheckoutScanResult {
+  scanId: string;
+  scannedAt: string;
+  totalFlows: number;
+  completableFlows: number;
+  previousCompletablePercent?: number;
+  flows: { name: string; total: number; completable: number }[];
+  issues?: ScanIssue[];
+}
+
+/**
+ * Contract for the security-scanning agent's output: what fraction of intent
+ * and abuse-protection policies are enforced. Post matching this shape to
+ * `/api/security`; `lib/security.ts` maps it onto a `ReadinessMetric`.
+ */
+export interface SecurityScanResult {
+  scanId: string;
+  scannedAt: string;
+  totalPolicies: number;
+  enforcedPolicies: number;
+  previousEnforcedPercent?: number;
+  policies: { name: string; total: number; enforced: number }[];
+  issues?: ScanIssue[];
+}
+
+/**
+ * Contract for the compatibility-scanning agent's output: what fraction of
+ * structured-data/policy signals are machine-readable. Post matching this
+ * shape to `/api/compatibility`; `lib/compatibility.ts` maps it onto a
+ * `ReadinessMetric`.
+ */
+export interface CompatibilityScanResult {
+  scanId: string;
+  scannedAt: string;
+  totalSignals: number;
+  compatibleSignals: number;
+  previousCompatiblePercent?: number;
+  signals: { name: string; total: number; compatible: number }[];
+  issues?: ScanIssue[];
 }
 export interface Scan {
   id: string;
