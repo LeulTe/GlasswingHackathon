@@ -6,7 +6,7 @@ import { runAgentScan } from '@/lib/agent/loop';
 import { STOREFRONT_ORIGIN } from '@/lib/agent/storefront';
 import { defaultProviderId, listProviders } from '@/lib/ai/providers';
 
-const MAX_JOBS = 8;
+const depthCaps: Record<string, number> = { Quick: 3, Standard: 6, Deep: 12 };
 
 // Buyer-swarm orchestrator. Fans a shared context out to multiple buyer
 // personas running concurrently, then aggregates their results. Each persona
@@ -21,12 +21,13 @@ export async function POST(request: Request) {
   const personas = context?.personas?.length ? context.personas : buyerPersonas;
   const goals = context?.goals?.length ? context.goals : defaultGoals;
   const storefrontUrl = context?.storefrontUrl || STOREFRONT_ORIGIN;
+  const maxJobs = depthCaps[context?.depth ?? 'Standard'] ?? 6;
 
   const jobs: { persona: BuyerPersona; goal: string }[] = [];
   outer: for (const persona of personas) {
     for (const goal of goals) {
       jobs.push({ persona, goal });
-      if (jobs.length >= MAX_JOBS) break outer;
+      if (jobs.length >= maxJobs) break outer;
     }
   }
 
