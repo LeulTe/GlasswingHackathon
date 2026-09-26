@@ -25,6 +25,7 @@ npm run start
 | -------------------- | -------------------------------------------------------------------------- |
 | `/dashboard`         | Readiness score, category health, expandable findings, scan history        |
 | `/scan`              | Storefront annotations, product/cart/checkout/policy previews, scan phases |
+| `/demand-signal`     | Simulated persona reactions to a product concept, interest score, objections |
 | `/sessions`          | Search and six filters, CSV export, links to individual session traces     |
 | `/replays`           | Replay session index                                                       |
 | `/replays/SES-10482` | Eight-step shopping trace, playback, requests, context, JSON export        |
@@ -56,6 +57,8 @@ Rename the product in `lib/mock-data/merchant.ts` (`productConfig`). This is als
 Scan and verification runs use short deterministic timers. Policies and recommendation state survive client-side route navigation; all demo changes reset on a page reload. Integration and settings configuration is held in component state. No merchant websites, commerce APIs, payment systems, or notification services are contacted. The CLI command is illustrative.
 
 Analytics charts use generated fixtures for the selected period. Agent distribution and failure-mode tables explicitly display the latest 1,248-session snapshot. The sessions table contains 11 representative sessions from that larger workspace summary. Recommendations expose five prioritized examples from the 12-item summary.
+
+Demand Signal's persona reactions, interest score, and objections are hand-authored fixture data, not live model calls; the "Run simulation" button only replays a short local timer over that same fixture.
 
 ## Browser checks
 
