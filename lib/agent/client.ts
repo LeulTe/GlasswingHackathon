@@ -1,5 +1,5 @@
 import { buildIntakeContext } from '@/lib/agent/intake';
-import type { IntakeContext, SwarmResponse } from '@/lib/agent/contracts';
+import type { IntakeContext, ScanConfig, SwarmResponse } from '@/lib/agent/contracts';
 
 /**
  * Client service layer for the two-stage agentic search.
@@ -12,17 +12,17 @@ import type { IntakeContext, SwarmResponse } from '@/lib/agent/contracts';
  * service) requires no changes to the UI — only the endpoint implementation.
  */
 
-export async function runIntake(query: string): Promise<IntakeContext> {
+export async function runIntake(query: string, config?: ScanConfig): Promise<IntakeContext> {
   try {
     const response = await fetch('/api/intake', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ query }),
+      body: JSON.stringify({ query, config }),
     });
     if (!response.ok) throw new Error(`intake ${response.status}`);
     return (await response.json()) as IntakeContext;
   } catch {
-    return buildIntakeContext(query);
+    return buildIntakeContext(query, config);
   }
 }
 

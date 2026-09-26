@@ -27,10 +27,23 @@ export interface IntakeContext {
   category: string;
   region: string;
   budget: number;
+  focus: string[];
   constraints: string[];
   goals: string[];
   personas: BuyerPersona[];
   source: 'heuristic' | 'llm';
+}
+
+/**
+ * Structured scan brief chosen by the user before searching. Populates the
+ * IntakeContext so the intake agent (and every buyer agent) starts from an
+ * explicit brief instead of guessing from free text.
+ */
+export interface ScanConfig {
+  focuses: string[];
+  personaIds: string[];
+  budget: number;
+  region: string;
 }
 
 /** Request/response contract for the buyer-swarm endpoint. */

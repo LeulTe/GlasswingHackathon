@@ -1,12 +1,31 @@
 import { buyerPersonas, defaultGoals, storefrontOrigin } from './personas';
-import type { BuyerPersona, IntakeContext } from './contracts';
+import type { IntakeContext, ScanConfig } from './contracts';
+
+export const focusOptions = ['Discovery', 'Checkout', 'Promotions', 'Policy compliance'];
+
+export const budgetBands = [
+  { label: 'Under $100', value: 100 },
+  { label: 'Under $250', value: 250 },
+  { label: 'Under $500', value: 500 },
+  { label: 'No limit', value: 10000 },
+];
+
+export const regions = ['US', 'EU', 'Global'];
+
+export const defaultScanConfig: ScanConfig = {
+  focuses: ['Discovery', 'Checkout'],
+  personaIds: buyerPersonas.map((persona) => persona.id),
+  budget: 250,
+  region: 'US',
+};
 
 function normalizeUrl(value: string): string {
   return /^https?:\/\//i.test(value) ? value : `https://${value}`;
 }
 
 /**
- * Normalizes free-text search input into the shared buyer context.
+ * Normalizes free-text search input + the user's scan brief into the shared
+ * buyer context.
  *
  * This is the intake seam: today it is a deterministic parser, but the same
  * signature can be backed by an intake LLM that asks clarifying questions and
@@ -14,14 +33,14 @@ function normalizeUrl(value: string): string {
  */
 export async function buildIntakeContext(
   query: string,
-  personas: BuyerPersona[] = buyerPersonas,
+  config: ScanConfig = defaultScanConfig,
 ): Promise<IntakeContext> {
   const trimmed = query.trim();
   const urlMatch = trimmed.match(/((https?:\/\/)?[a-z0-9-]+(\.[a-z0-9-]+)+(?:\/\S*)?)/i);
   const storefrontUrl = urlMatch ? normalizeUrl(urlMatch[0]) : storefrontOrigin;
   const storefrontLabel = storefrontUrl.replace(/^https?:\/\//i, '');
   const budgetMatch = trimmed.match(/\$\s?(\d{2,5})|(\d{2,5})\s?(?:dollars|budget)/i);
-  const budget = budgetMatch ? Number(budgetMatch[1] ?? budgetMatch[2]) : 250;
+  const budget = budgetMatch ? Number(budgetMatch[1] ?? budgetMatch[2]) : config.budget;
   const category = /apparel|jacket|clothing/i.test(trimmed)
     ? 'Apparel'
     : /backpack|pack|daypack/i.test(trimmed)
@@ -35,19 +54,24 @@ export async function buildIntakeContext(
             : 'General';
   const rest = urlMatch ? trimmed.replace(urlMatch[0], '').trim() : trimmed;
   const goals = urlMatch && rest.length < 4 ? defaultGoals : [trimmed];
+  const personas = config.personaIds.length
+    ? buyerPersonas.filter((persona) => config.personaIds.includes(persona.id))
+    : buyerPersonas;
   return {
     storefrontUrl,
     storefrontLabel,
     category,
-    region: 'US',
+    region: config.region,
     budget,
+    focus: config.focuses,
     constraints: [
+      `Focus: ${config.focuses.join(', ') || 'General readiness'}`,
       `Budget ≤ $${budget}`,
-      'Region: US',
+      `Region: ${config.region}`,
       'Autonomous purchase allowed within budget',
     ],
     goals,
-    personas,
+    personas: personas.length ? personas : buyerPersonas,
     source: 'heuristic',
   };
 }
