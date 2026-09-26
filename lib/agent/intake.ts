@@ -1,7 +1,22 @@
 import { buyerPersonas, defaultGoals, storefrontOrigin } from './personas';
 import type { IntakeContext, ScanConfig } from './contracts';
 
-export const focusOptions = ['Discovery', 'Checkout', 'Promotions', 'Policy compliance'];
+export const focusOptions = [
+  'Discovery',
+  'Checkout',
+  'Promotions',
+  'Policy compliance',
+  'Variants & compatibility',
+  'Inventory & availability',
+  'Pricing accuracy',
+];
+
+export const guardrailOptions = [
+  'Autonomous checkout allowed',
+  'Confirm above $250',
+  'Block promo abuse',
+  'Verified agent identity',
+];
 
 export const budgetBands = [
   { label: 'Under $100', value: 100 },
@@ -11,12 +26,19 @@ export const budgetBands = [
 ];
 
 export const regions = ['US', 'EU', 'Global'];
+export const currencies = ['USD', 'EUR', 'GBP'];
+export const environments = ['Production', 'Staging'];
+export const scanDepths = ['Quick', 'Standard', 'Deep'];
 
 export const defaultScanConfig: ScanConfig = {
   focuses: ['Discovery', 'Checkout'],
   personaIds: buyerPersonas.map((persona) => persona.id),
   budget: 250,
   region: 'US',
+  currency: 'USD',
+  environment: 'Production',
+  depth: 'Standard',
+  guardrails: ['Block promo abuse', 'Verified agent identity'],
 };
 
 function normalizeUrl(value: string): string {
@@ -57,19 +79,26 @@ export async function buildIntakeContext(
   const personas = config.personaIds.length
     ? buyerPersonas.filter((persona) => config.personaIds.includes(persona.id))
     : buyerPersonas;
+  const constraints = [
+    `Focus: ${config.focuses.join(', ') || 'General readiness'}`,
+    `Depth: ${config.depth}`,
+    `Budget ≤ ${config.currency} ${budget}`,
+    `Region: ${config.region}`,
+    `Environment: ${config.environment}`,
+    ...config.guardrails.map((guardrail) => `Guardrail: ${guardrail}`),
+  ];
   return {
     storefrontUrl,
     storefrontLabel,
     category,
     region: config.region,
+    currency: config.currency,
+    environment: config.environment,
+    depth: config.depth,
     budget,
     focus: config.focuses,
-    constraints: [
-      `Focus: ${config.focuses.join(', ') || 'General readiness'}`,
-      `Budget ≤ $${budget}`,
-      `Region: ${config.region}`,
-      'Autonomous purchase allowed within budget',
-    ],
+    guardrails: config.guardrails,
+    constraints,
     goals,
     personas: personas.length ? personas : buyerPersonas,
     source: 'heuristic',

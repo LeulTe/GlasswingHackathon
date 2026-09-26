@@ -2,7 +2,15 @@
 import { useApp } from '@/components/layout/app-provider';
 import { GatewayLogo } from '@/components/layout/app-shell';
 import { Button, Select, StatusBadge } from '@/components/ui/primitives';
-import { budgetBands, focusOptions, regions } from '@/lib/agent/intake';
+import {
+  budgetBands,
+  currencies,
+  environments,
+  focusOptions,
+  guardrailOptions,
+  regions,
+  scanDepths,
+} from '@/lib/agent/intake';
 import { buyerPersonas } from '@/lib/agent/personas';
 import { directory } from '@/lib/mock-data/directory';
 import { productConfig } from '@/lib/mock-data/merchant';
@@ -56,6 +64,13 @@ export function DiscoverPage() {
     setScanConfig({ ...scanConfig, personaIds });
   };
 
+  const toggleGuardrail = (guardrail: string) => {
+    const guardrails = scanConfig.guardrails.includes(guardrail)
+      ? scanConfig.guardrails.filter((item) => item !== guardrail)
+      : [...scanConfig.guardrails, guardrail];
+    setScanConfig({ ...scanConfig, guardrails });
+  };
+
   const skipSetup = () => {
     setSetupOpen(false);
     if (typeof window !== 'undefined') window.localStorage.setItem(SETUP_KEY, '1');
@@ -98,8 +113,8 @@ export function DiscoverPage() {
             </span>
             <div className="setup-head-right">
               <span className="setup-summary">
-                {scanConfig.focuses.length || 0} focus · {scanConfig.personaIds.length} agents · $
-                {scanConfig.budget} · {scanConfig.region}
+                {scanConfig.focuses.length} focus · {scanConfig.personaIds.length} agents ·{' '}
+                {scanConfig.currency} {scanConfig.budget} · {scanConfig.region} · {scanConfig.depth}
               </span>
               <button className="setup-toggle" onClick={() => setSetupOpen((open) => !open)}>
                 {setupOpen ? 'Hide' : 'Configure'}
@@ -143,6 +158,24 @@ export function DiscoverPage() {
                 </div>
               </div>
 
+              <div className="setup-group">
+                <span className="setup-label">Guardrails to enforce</span>
+                <div className="setup-chips">
+                  {guardrailOptions.map((guardrail) => (
+                    <button
+                      key={guardrail}
+                      className={cn(
+                        'setup-chip',
+                        scanConfig.guardrails.includes(guardrail) && 'active',
+                      )}
+                      onClick={() => toggleGuardrail(guardrail)}
+                    >
+                      {guardrail}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="setup-row">
                 <label className="setup-field">
                   <span className="setup-label">Budget</span>
@@ -157,12 +190,39 @@ export function DiscoverPage() {
                   />
                 </label>
                 <label className="setup-field">
+                  <span className="setup-label">Currency</span>
+                  <Select
+                    label="Currency"
+                    value={scanConfig.currency}
+                    onChange={(value) => setScanConfig({ ...scanConfig, currency: value })}
+                    options={currencies}
+                  />
+                </label>
+                <label className="setup-field">
                   <span className="setup-label">Region</span>
                   <Select
                     label="Region"
                     value={scanConfig.region}
                     onChange={(value) => setScanConfig({ ...scanConfig, region: value })}
                     options={regions}
+                  />
+                </label>
+                <label className="setup-field">
+                  <span className="setup-label">Environment</span>
+                  <Select
+                    label="Environment"
+                    value={scanConfig.environment}
+                    onChange={(value) => setScanConfig({ ...scanConfig, environment: value })}
+                    options={environments}
+                  />
+                </label>
+                <label className="setup-field">
+                  <span className="setup-label">Scan depth</span>
+                  <Select
+                    label="Scan depth"
+                    value={scanConfig.depth}
+                    onChange={(value) => setScanConfig({ ...scanConfig, depth: value })}
+                    options={scanDepths}
                   />
                 </label>
               </div>

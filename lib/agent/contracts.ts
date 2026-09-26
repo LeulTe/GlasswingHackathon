@@ -26,8 +26,12 @@ export interface IntakeContext {
   storefrontLabel: string;
   category: string;
   region: string;
+  currency: string;
+  environment: string;
+  depth: string;
   budget: number;
   focus: string[];
+  guardrails: string[];
   constraints: string[];
   goals: string[];
   personas: BuyerPersona[];
@@ -44,6 +48,10 @@ export interface ScanConfig {
   personaIds: string[];
   budget: number;
   region: string;
+  currency: string;
+  environment: string;
+  depth: string;
+  guardrails: string[];
 }
 
 /** Request/response contract for the buyer-swarm endpoint. */
