@@ -322,8 +322,10 @@ test('merged main retains demand simulation, visual demo replay and reporting pa
   await expect(
     page.getByText('Demo replay — illustrative storefront actions, not a recorded Gateway scan.'),
   ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Investigation view', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Safety controls held', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Watch visual replay' }).click();
-  await expect(page.getByRole('dialog')).toBeVisible();
+  await expect(page.getByRole('dialog')).toContainText('Visual replay · SES-10482');
   for (const [route, heading] of [
     ['analytics', 'Analytics'],
     ['security', 'Security'],
