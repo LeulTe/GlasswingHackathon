@@ -122,8 +122,7 @@ export function DiscoverPage() {
             </div>
           </div>
 
-          {setupOpen && (
-            <div className="setup-body">
+          <div className={cn('setup-body', setupOpen ? 'open' : 'closed')}>
               <div className="setup-group">
                 <span className="setup-label">What to test</span>
                 <div className="setup-chips">
@@ -227,12 +226,11 @@ export function DiscoverPage() {
                 </label>
               </div>
 
-              <button className="setup-skip" onClick={skipSetup}>
+<button className="setup-skip" onClick={skipSetup}>
                 Skip setup — use defaults
               </button>
             </div>
-          )}
-        </div>
+          </div>
 
         <div className="portal-controls">
           <div className="discover-search">
