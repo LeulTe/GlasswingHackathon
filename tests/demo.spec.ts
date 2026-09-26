@@ -14,16 +14,15 @@ test('all demo routes render without client errors and primary surfaces are capt
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   for (const [route, heading] of [
-    ['dashboard', 'Good morning, Jordan'],
-    ['scan', 'Readiness Scan Results'],
+    ['dashboard', 'Storefront testing overview'],
+    ['scan', 'Agent test run'],
     ['sessions', 'Shopping Sessions'],
-    ['replays/SES-10482', 'Agent Replay'],
     ['security', 'Security'],
-    ['recommendations', 'Recommendations'],
+    ['recommendations', 'Findings & next steps'],
     ['analytics', 'Analytics'],
     ['integrations', 'Integrations'],
     ['settings', 'Settings'],
-    ['replays', 'Session Replays'],
+    ['replays', 'Session replays'],
   ]) {
     await page.goto(`/${route}`);
     await expect(page.getByRole('heading', { name: heading, exact: true })).toBeVisible();
@@ -31,7 +30,7 @@ test('all demo routes render without client errors and primary surfaces are capt
     expect(
       await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
     ).toBe(true);
-    if (['dashboard', 'scan', 'replays/SES-10482'].includes(route)) {
+    if (['dashboard', 'scan', 'sessions'].includes(route)) {
       await page.screenshot({
         path: `test-results/${route.replaceAll('/', '-')}-desktop.png`,
         fullPage: true,
@@ -42,79 +41,16 @@ test('all demo routes render without client errors and primary surfaces are capt
   expect(errors).toEqual([]);
 });
 
-test('shell dropdowns, scan lifecycle, and finding expansion', async ({ page }) => {
+test('scan entry points lead to merchant review instead of simulated completion', async ({
+  page,
+}) => {
   await page.goto('/dashboard');
-  await page.getByRole('button', { name: 'Evertrail Outdoors', exact: true }).click();
-  await expect(page.getByRole('menuitem', { name: /Connect a storefront/ })).toBeVisible();
-  await page.keyboard.press('Escape');
-  await page.getByRole('button', { name: 'Production', exact: true }).click();
-  await page.getByRole('menuitem', { name: 'Staging', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Staging', exact: true })).toBeVisible();
-  await page.getByRole('button', { name: 'Run new scan' }).click();
-  await expect(page.getByRole('progressbar')).toBeVisible();
-  await expect(page.getByRole('status')).toContainText('Readiness scan complete', {
-    timeout: 10000,
-  });
-  await expect(page.getByRole('status')).toContainText('Staging');
-  await expect(page.getByText('Just now', { exact: true })).toBeVisible();
-  await page.getByRole('button', { name: /Variant metadata unclear/ }).click();
-  await expect(page.getByText(/The capacity selector updates/)).toBeVisible();
-});
-
-test('scan annotations and storefront page selector are interactive', async ({ page }) => {
-  await page.goto('/scan');
-  await page.getByRole('button', { name: 'Issue 2: Unclear shipping estimate' }).click();
-  await expect(page.locator('.selected-issue')).toContainText('Unclear shipping estimate');
-  await page.getByLabel('Preview page').selectOption('Cart');
-  await expect(page.getByRole('heading', { name: 'Your cart', exact: true })).toBeVisible();
-  await page.getByRole('button', { name: 'Continue to checkout' }).click();
-  await expect(page.getByRole('heading', { name: 'Order summary' })).toBeVisible();
-  await page.getByRole('button', { name: /Checkout Flow/ }).click();
-  await expect(page.locator('.phase-detail')).toContainText('All 8 checkout checks passed');
-  await page.getByLabel('Preview page').selectOption('Shipping policy');
-  await expect(page.getByRole('heading', { name: 'Shipping & returns' })).toBeVisible();
-});
-
-test('session filters, CSV export, selected replay, and timeline tabs', async ({ page }) => {
+  await page.getByRole('button', { name: 'Run Scan', exact: true }).click();
+  await expect(page).toHaveURL('/discover');
+  await expect(page.getByRole('button', { name: 'Inspect storefront', exact: true })).toBeVisible();
   await page.goto('/sessions');
-  await page.getByLabel('Status', { exact: true }).selectOption('Failed');
-  await expect(page.locator('tbody tr')).toHaveCount(2);
-  await page.getByLabel('Search sessions').fill('boots');
-  await expect(page.locator('tbody tr')).toHaveCount(1);
-  const download = page.waitForEvent('download');
-  await page.getByRole('button', { name: 'Export', exact: true }).click();
-  expect((await download).suggestedFilename()).toBe('gateway-shopping-sessions.csv');
-  await page.getByRole('link', { name: 'SES-10481', exact: true }).click();
-  await expect(page).toHaveURL(/replays\/SES-10481/);
-  await expect(
-    page.getByText('Size 11 variant SKU does not match checkout availability.'),
-  ).toBeVisible();
-  await page.goto('/replays/SES-10482');
-  await page.getByRole('tab', { name: 'Requests', exact: true }).click();
-  await expect(page.locator('.request-list')).toContainText('GET /collections/backpacks');
-  await page.getByRole('tab', { name: 'Agent context' }).click();
-  await expect(page.getByText('Production-safe simulation', { exact: true })).toBeVisible();
-  await page.getByRole('tab', { name: 'Timeline' }).click();
-  await page.getByRole('button', { name: 'Replay', exact: true }).click();
-  await expect(page.locator('.playback-active')).toBeVisible();
-  await page.getByRole('button', { name: 'Pause', exact: true }).click();
-  await page.getByRole('button', { name: 'View all events' }).click();
-  await expect(page.getByRole('dialog')).toContainText('Security events · SES-10482');
-});
-
-test('all session filters and empty state', async ({ page }) => {
-  await page.goto('/sessions');
-  await page.getByLabel('Goal type', { exact: true }).selectOption('Promotion');
-  await expect(page.locator('tbody tr')).toHaveCount(1);
-  await page.getByLabel('Agent profile', { exact: true }).selectOption('Synthetic Buyer v3');
-  await page.getByLabel('Environment filter').selectOption('Production');
-  await page.getByLabel('Severity', { exact: true }).selectOption('Critical');
-  await page.getByLabel('Date range').selectOption('Today');
-  await expect(page.locator('tbody tr')).toHaveCount(1);
-  await page.getByLabel('Date range').selectOption('Yesterday');
-  await expect(page.getByRole('heading', { name: 'No results found' })).toBeVisible();
-  await page.getByRole('button', { name: 'Clear filters' }).click();
-  await expect(page.locator('tbody tr')).toHaveCount(11);
+  await page.getByRole('link', { name: 'Run shopping tests' }).click();
+  await expect(page).toHaveURL('/discover');
 });
 
 test('policy editing and new policy submission', async ({ page }) => {
@@ -133,26 +69,6 @@ test('policy editing and new policy submission', async ({ page }) => {
   await page.getByRole('button', { name: 'Save policy' }).click();
   await expect(page.locator('.policy-table tbody tr')).toHaveCount(6);
   await expect(page.locator('.policy-table')).toContainText('Prevent checkout retries');
-});
-
-test('recommendation implementation and verification move an issue to resolved', async ({
-  page,
-}) => {
-  await page.goto('/recommendations');
-  const card = page.locator('#REC-001');
-  await card.getByRole('button', { name: 'View implementation' }).click();
-  await expect(page.getByRole('dialog')).toContainText('ProductGroup');
-  await page.getByRole('button', { name: 'Close guide' }).click();
-  await card.getByRole('button', { name: 'Verify fix' }).click();
-  await expect(card.getByRole('button', { name: 'Verifying…' })).toBeDisabled();
-  await expect(page.getByRole('status')).toContainText('Verification run passed', {
-    timeout: 10000,
-  });
-  await page.getByRole('tab', { name: 'Resolved', exact: true }).click();
-  await expect(page.locator('#REC-001')).toContainText('Verification passed');
-  await expect(
-    page.locator('#REC-001').getByRole('button', { name: 'Verified', exact: true }),
-  ).toBeDisabled();
 });
 
 test('analytics date range and integration connection', async ({ page }) => {
@@ -179,7 +95,6 @@ test('tablet and mobile layouts stay within viewport, navigation works', async (
       'dashboard',
       'scan',
       'sessions',
-      'replays/SES-10482',
       'security',
       'recommendations',
       'analytics',
@@ -210,7 +125,7 @@ test('invalid replay shows a proper not-found page and session alias redirects',
   await expect(
     page.getByRole('heading', { name: 'This page isn’t in your workspace.' }),
   ).toBeVisible();
-  await page.goto('/sessions/SES-10479');
-  await expect(page).toHaveURL(/\/replays\/SES-10479/);
-  await expect(page.getByText('Fourth promo-code attempt blocked.')).toBeVisible();
+  await page.goto('/sessions/00000000-0000-4000-8000-000000000099');
+  await expect(page).toHaveURL(/\/replays\/00000000-0000-4000-8000-000000000099/);
+  await expect(page.getByRole('heading', { name: 'Session replay', exact: true })).toBeVisible();
 });

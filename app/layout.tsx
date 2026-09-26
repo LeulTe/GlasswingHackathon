@@ -1,3 +1,4 @@
+import { GatewayProvider } from '@/components/gateway/provider';
 import { AppProvider } from '@/components/layout/app-provider';
 import { AppShell } from '@/components/layout/app-shell';
 import type { Metadata } from 'next';
@@ -11,9 +12,11 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en">
       <body>
-        <AppProvider>
-          <AppShell>{children}</AppShell>
-        </AppProvider>
+        <GatewayProvider>
+          <AppProvider>
+            <AppShell>{children}</AppShell>
+          </AppProvider>
+        </GatewayProvider>
       </body>
     </html>
   );

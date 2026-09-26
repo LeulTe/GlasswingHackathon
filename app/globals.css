@@ -6196,3 +6196,239 @@ svg {
     align-items: flex-start;
   }
 }
+
+/* Gateway's persisted AI workflow uses the existing application cards and controls. */
+.gateway-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+.gateway-panel {
+  padding: 24px;
+}
+.gateway-panel p,
+.gateway-editor p,
+.gateway-finding p {
+  margin: 10px 0;
+  line-height: 1.6;
+  color: var(--text-secondary, #5e687a);
+}
+.gateway-toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.gateway-form-row {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.gateway-form-row > label {
+  flex: 1 1 240px;
+}
+.gateway-form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+.gateway-stack label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+}
+.gateway-stack input:not([type="checkbox"]),
+.gateway-stack textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--border, #dfe3eb);
+  border-radius: 7px;
+  background: white;
+  color: #1d2739;
+  padding: 10px 12px;
+  font: inherit;
+}
+.gateway-stack textarea {
+  resize: vertical;
+  min-height: 76px;
+}
+.gateway-stack input:focus-visible,
+.gateway-stack textarea:focus-visible {
+  outline: 2px solid #4f68db;
+  outline-offset: 2px;
+}
+.gateway-stack .gateway-checkbox {
+  flex-direction: row;
+  align-items: center;
+  font-weight: 400;
+}
+.gateway-checkbox input {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+.gateway-review {
+  border: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+.gateway-review:disabled {
+  opacity: 0.65;
+}
+.gateway-editor {
+  border: 1px solid var(--border, #e1e5ec);
+  border-radius: 10px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.gateway-editor small,
+.gateway-note {
+  color: #647084;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.gateway-constraint {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.gateway-constraint > * {
+  flex: 1 1 150px;
+}
+.gateway-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 20px;
+  background: #f1f5ff;
+  border-radius: 8px;
+}
+.gateway-error {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  overflow-wrap: anywhere;
+}
+.gateway-table-wrap {
+  overflow-x: auto;
+  width: 100%;
+}
+.gateway-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  text-align: left;
+}
+.gateway-table th {
+  padding: 14px 18px;
+  background: #f8f9fc;
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #647084;
+}
+.gateway-table td {
+  padding: 17px 18px;
+  border-top: 1px solid #e8ebf1;
+  max-width: 350px;
+  min-width: 100px;
+  overflow-wrap: anywhere;
+  vertical-align: top;
+}
+.gateway-table td small {
+  display: block;
+  margin: 5px 0;
+  color: #6b7585;
+}
+.gateway-finding {
+  padding: 22px 24px;
+  border-top: 1px solid #e8ebf1;
+}
+.gateway-finding h3 {
+  margin-top: 12px;
+}
+.gateway-observation {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font:
+    12px/1.7 ui-monospace,
+    monospace;
+  background: #f7f8fb;
+  padding: 16px;
+  border-radius: 8px;
+  max-height: 480px;
+  overflow-y: auto;
+}
+.gateway-stack details {
+  margin: 12px 0;
+  overflow-wrap: anywhere;
+}
+.gateway-stack summary {
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+.gateway-stack progress {
+  width: 100%;
+  height: 9px;
+  margin-top: 16px;
+  accent-color: #435bd0;
+}
+.gateway-replay-layout {
+  display: grid;
+  grid-template-columns: 310px minmax(0, 1fr);
+  gap: 20px;
+}
+.gateway-timeline {
+  list-style: none;
+  padding: 8px;
+}
+.gateway-timeline button {
+  text-align: left;
+  width: 100%;
+  padding: 15px;
+  border-radius: 7px;
+}
+.gateway-timeline button.selected {
+  background: #eff3ff;
+  box-shadow: inset 3px 0 #4b60cf;
+}
+.gateway-timeline span {
+  display: block;
+  font-size: 11px;
+  color: #69758a;
+  margin-top: 7px;
+}
+.gateway-details {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: 10px;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+}
+.gateway-details dt {
+  color: #68748a;
+}
+@media (max-width: 760px) {
+  .gateway-form-grid,
+  .gateway-replay-layout {
+    grid-template-columns: 1fr;
+  }
+  .gateway-panel,
+  .gateway-editor {
+    padding: 16px;
+  }
+  .gateway-toolbar {
+    gap: 9px;
+  }
+}
