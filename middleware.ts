@@ -5,9 +5,11 @@ import { supabaseConfig } from '@/lib/supabase/config';
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
   const publicPage =
-    ['/', '/login', '/signup', '/discover'].includes(path) ||
+    ['/', '/login', '/signup', '/discover', '/scanning'].includes(path) ||
     path.startsWith('/auth/') ||
-    path.startsWith('/api/agent-scan');
+    path.startsWith('/api/agent-scan') ||
+    path.startsWith('/api/intake') ||
+    path.startsWith('/api/buyers');
   let response = NextResponse.next({ request });
   const config = supabaseConfig();
   let authenticated = false;
