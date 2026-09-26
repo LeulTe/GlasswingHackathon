@@ -6888,3 +6888,61 @@ svg {
     gap: 9px;
   }
 }
+
+/* Quantitative panels consume the persisted scan readiness contract. */
+.gateway-quantitative {
+  margin-bottom: 24px;
+}
+.gateway-scope-summary {
+  flex: 1;
+  min-width: 0;
+  padding: 20px;
+  background: #f7f9fd;
+  border-radius: 10px;
+  overflow-wrap: anywhere;
+}
+.gateway-scope-summary p,
+.gateway-scope-summary small {
+  color: var(--text-muted, #718096);
+}
+.gateway-scope-summary .merchant-stats {
+  margin: 16px 0;
+}
+.gateway-category {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.gateway-category .readiness-card {
+  flex: 1;
+}
+.gateway-category-source {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 4px;
+}
+.gateway-readiness-chart {
+  height: 240px;
+  min-width: 0;
+}
+.gateway-trend-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 0 24px 20px;
+}
+@media (max-width: 760px) {
+  .gateway-quantitative .readiness-overview-body {
+    flex-direction: column;
+  }
+  .gateway-scope-summary {
+    width: 100%;
+  }
+}
+@media (max-width: 760px) {
+  .gateway-quantitative .readiness-overview-body {
+    grid-template-columns: 1fr;
+  }
+}

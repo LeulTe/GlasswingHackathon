@@ -182,6 +182,7 @@ export interface Finding {
   summarySource: 'deterministic' | 'model';
 }
 export interface Scan {
+  categoryReports?: import('./readiness').CategoryReport[];
   id: string;
   ownerId: string;
   draft: Draft;
