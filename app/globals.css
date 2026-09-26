@@ -6672,3 +6672,137 @@ svg {
 @media (max-width: 620px) {
   .scanning-pct { font-size: 32px; }
 }
+
+/* Scan brief setup panel */
+.setup-panel {
+  max-width: 680px;
+  margin: 22px auto 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 4px 14px #1e34500a;
+  text-align: left;
+  overflow: hidden;
+}
+.setup-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  background: #f8fafd;
+  border-bottom: 1px solid var(--border);
+}
+.setup-head-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.setup-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.setup-title svg {
+  color: #68829c;
+}
+.setup-summary {
+  font-size: 11px;
+  color: #8b93a1;
+}
+.setup-toggle {
+  border: 1px solid var(--border);
+  background: #fff;
+  border-radius: 6px;
+  padding: 4px 9px;
+  font-size: 11.5px;
+  color: #5b6474;
+}
+.setup-toggle:hover {
+  border-color: #c3d4ef;
+  color: #2d67cd;
+}
+.setup-body {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.setup-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.setup-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #7c8593;
+}
+.setup-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.setup-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  background: #fff;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 11.5px;
+  color: #5b6474;
+  transition: all 0.14s;
+}
+.setup-chip:hover {
+  border-color: #c3d4ef;
+}
+.setup-chip.active {
+  background: #edf3ff;
+  border-color: #a9c6f4;
+  color: #2d67cd;
+  font-weight: 500;
+}
+.setup-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 18px;
+  width: 18px;
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: 600;
+  color: #fff;
+}
+.setup-emerald { background: #299d7f; }
+.setup-blue { background: #3571e5; }
+.setup-violet { background: #7c5cd6; }
+.setup-teal { background: #2a9d9a; }
+.setup-row {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.setup-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 150px;
+}
+.setup-skip {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  color: #8b93a1;
+  font-size: 11.5px;
+  text-decoration: underline;
+  padding: 0;
+}
+.setup-skip:hover {
+  color: #5b6474;
+}
