@@ -98,6 +98,14 @@ svg {
   font-size: 11px;
   font-weight: 500;
 }
+.negative {
+  color: #d65b65;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 500;
+}
 .danger-text {
   color: #d65b65;
 }
@@ -1243,7 +1251,8 @@ svg {
   color: #78808b;
   margin-left: 5px;
 }
-.trend-value > .positive {
+.trend-value > .positive,
+.trend-value > .negative {
   font-size: 10px;
 }
 .trend-chart {
