@@ -1,5 +1,6 @@
 'use client';
-import { latestScan } from '@/lib/mock-data/scans';
+import { useRouter } from 'next/navigation';
+import { useGateway } from '@/components/gateway/provider';
 import { securityPolicies } from '@/lib/mock-data/security';
 import { getSecurityPoliciesReport } from '@/lib/security-policies';
 import type { ScannedSite } from '@/lib/agent/types';
@@ -7,15 +8,7 @@ import type { ScanConfig } from '@/lib/agent/contracts';
 import { defaultScanConfig } from '@/lib/agent/intake';
 import type { Environment, SecurityPolicy } from '@/lib/types';
 import { CheckCircle2, X } from 'lucide-react';
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-  type ReactNode,
-} from 'react';
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 interface AppState {
   environment: Environment;
   setEnvironment: (v: Environment) => void;
@@ -39,30 +32,34 @@ interface AppState {
 const AppContext = createContext<AppState | null>(null);
 export function AppProvider({ children }: { children: ReactNode }) {
   const [environment, setEnvironment] = useState<Environment>('Production');
-  const [scanning, setScanning] = useState(false);
-  const [scanProgress, setScanProgress] = useState(0);
-  const [lastScanned, setLastScanned] = useState(latestScan.date);
-  const [scanNumber, setScanNumber] = useState(25);
+  const router = useRouter();
+  const { activeScan, dashboard } = useGateway();
+  const scanning = activeScan?.status === 'running' || activeScan?.status === 'queued';
+  const scanProgress = activeScan?.sessions.length
+    ? Math.round(
+        (activeScan.sessions.filter((session) => !['queued', 'running'].includes(session.status))
+          .length /
+          activeScan.sessions.length) *
+          100,
+      )
+    : 0;
+  const latest = dashboard?.scans[0];
+  const lastScanned = latest?.completedAt
+    ? new Date(latest.completedAt).toLocaleString()
+    : 'No completed scans';
+  const scanNumber = dashboard?.totalScans || 0;
   const [toast, setToast] = useState('');
   const [policies, setPolicies] = useState(securityPolicies);
   const [resolved, setResolved] = useState<string[]>([]);
   const [verified, setVerified] = useState<string[]>([]);
   const [scanSite, setScanSite] = useState<ScannedSite | null>(null);
   const [scanConfig, setScanConfig] = useState<ScanConfig>(defaultScanConfig);
-  const timer = useRef<ReturnType<typeof setInterval> | null>(null);
-  const scanLock = useRef(false);
   const notify = useCallback((message: string) => setToast(message), []);
   useEffect(() => {
     if (!toast) return;
     const t = setTimeout(() => setToast(''), 5500);
     return () => clearTimeout(t);
   }, [toast]);
-  useEffect(
-    () => () => {
-      if (timer.current) clearInterval(timer.current);
-    },
-    [],
-  );
   useEffect(() => {
     let cancelled = false;
     getSecurityPoliciesReport().then((result) => {
@@ -72,25 +69,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       cancelled = true;
     };
   }, []);
-  const runScan = () => {
-    if (scanLock.current) return;
-    scanLock.current = true;
-    setScanning(true);
-    setScanProgress(0);
-    let progress = 0;
-    timer.current = setInterval(() => {
-      progress += 20;
-      setScanProgress(progress);
-      if (progress >= 100) {
-        if (timer.current) clearInterval(timer.current);
-        scanLock.current = false;
-        setScanning(false);
-        setScanNumber((n) => n + 1);
-        setLastScanned('Just now');
-        notify(`Readiness scan complete · ${environment} · 86 pages analyzed · score 74/100`);
-      }
-    }, 650);
-  };
+  const runScan = () => router.push('/discover');
   return (
     <AppContext.Provider
       value={{

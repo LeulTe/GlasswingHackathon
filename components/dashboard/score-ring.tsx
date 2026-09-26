@@ -1,12 +1,22 @@
 import { cn } from '@/lib/utils';
-export function ScoreRing({ score, compact = false }: { score: number; compact?: boolean }) {
+export function ScoreRing({
+  score,
+  compact = false,
+  label = 'Agent Ready',
+  ariaLabel,
+}: {
+  score: number;
+  compact?: boolean;
+  label?: string;
+  ariaLabel?: string;
+}) {
   const radius = 62;
   const circumference = 2 * Math.PI * radius;
   return (
     <div
       className={cn('score-ring', compact && 'compact')}
       role="img"
-      aria-label={`Agent readiness score: ${score} out of 100`}
+      aria-label={ariaLabel || `${label}: ${score} out of 100`}
     >
       <svg viewBox="0 0 144 144">
         <circle cx="72" cy="72" r={radius} fill="none" stroke="#eaf0f5" strokeWidth="9" />
@@ -28,7 +38,7 @@ export function ScoreRing({ score, compact = false }: { score: number; compact?:
           <strong>{score}</strong>
           <span>/ 100</span>
         </div>
-        <span>Agent Ready</span>
+        <span>{label}</span>
       </div>
     </div>
   );

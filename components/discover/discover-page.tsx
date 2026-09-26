@@ -41,11 +41,11 @@ export function DiscoverPage() {
     if (typeof window !== 'undefined' && window.localStorage.getItem(SETUP_KEY) === '1') {
       setSetupOpen(false);
     }
-    fetch('/api/agent-scan')
+    fetch('/api/ai/providers')
       .then((response) => response.json())
       .then((payload: { providers: ProviderInfo[]; defaultProvider: string }) => {
-        setProviders(payload.providers);
-        setProvider(payload.defaultProvider);
+        setProviders(Array.isArray(payload.providers) ? payload.providers : []);
+        if (payload.defaultProvider) setProvider(payload.defaultProvider);
       })
       .catch(() => undefined);
   }, []);
