@@ -23,6 +23,7 @@ import {
   Search,
   Settings2,
   ShieldCheck,
+  Target,
   Terminal,
   Users,
   Wand2,
@@ -43,6 +44,7 @@ const navigation = [
   { href: '/replays', label: 'Replays', icon: CirclePlay },
   { href: '/recommendations', label: 'Findings', icon: Wand2 },
   { href: '/analytics', label: 'Analytics', icon: ChartNoAxesCombined },
+  { href: '/pitch', label: 'Why This Matters', icon: Target },
 ];
 export function GatewayLogo({ small = false }: { small?: boolean }) {
   return (
