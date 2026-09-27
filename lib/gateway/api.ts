@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { categoryReportSchema, readinessForScan, readinessOverview } from './readiness';
 import { environments } from './config';
 import { GatewayError, isGatewayError, publicError } from './errors';
 import {
@@ -147,7 +148,38 @@ export async function handleGateway(
       data = await service.store.get('draft', ownerId, id);
     else if (resource === 'drafts' && id && !action && request.method === 'PATCH')
       data = await service.review(ownerId, id, await body(request, reviewSchema));
-    else if (resource === 'scans' && !id && request.method === 'POST') {
+    else if (resource === 'scans' && id && action === 'readiness' && request.method === 'GET')
+      data = readinessForScan(await service.store.get('scan', ownerId, id));
+    else if (resource === 'scans' && id && action === 'readiness' && request.method === 'POST') {
+      const report = await body(request, categoryReportSchema);
+      data = await service.store.exclusive(`readiness:${id}`, async () => {
+        const scan = await service.store.get('scan', ownerId, id);
+        if (['queued', 'running'].includes(scan.status))
+          throw new GatewayError(
+            'SCAN_ACTIVE',
+            'Submit category reports after the scan stops.',
+            409,
+          );
+        const ids = new Set([
+          ...scan.draft.evidence.map((o) => o.id),
+          ...scan.sessions.flatMap((s) =>
+            s.trace.flatMap((e) => [e.id, ...(e.observation ? [e.observation.id] : [])]),
+          ),
+        ]);
+        if (report.checks.some((c) => c.evidenceIds.some((evidenceId) => !ids.has(evidenceId))))
+          throw new GatewayError(
+            'INVALID_PROVENANCE',
+            'Category checks must cite evidence from this scan.',
+            422,
+          );
+        scan.categoryReports = [
+          ...(scan.categoryReports || []).filter((r) => r.category !== report.category),
+          { ...report, recordedAt: new Date().toISOString() },
+        ];
+        await service.store.save('scan', scan);
+        return readinessForScan(scan);
+      });
+    } else if (resource === 'scans' && !id && request.method === 'POST') {
       data = await service.createScan(ownerId, await body(request, scanRequestSchema));
       status = 201;
     } else if (resource === 'scans' && id && action === 'run' && request.method === 'POST')
@@ -216,6 +248,7 @@ export async function handleGateway(
         const realSessions = scans.filter((scan) => !scan.fixture).flatMap((scan) => scan.sessions);
         const evaluated = realSessions.filter((session) => session.evaluation !== null);
         data = {
+          readiness: readinessOverview(scans),
           scans: scans.slice(0, 10).map(scanSummary),
           totalScans: scans.length,
           totalSessions: sessions.length,
@@ -247,6 +280,7 @@ export async function handleGateway(
         },
         { status: 400, headers },
       );
+    if (!isGatewayError(error)) console.error('[gateway] unhandled error', error);
     return Response.json(
       { apiVersion: 'v1', error: publicError(error) },
       { status: isGatewayError(error) ? error.status : 500, headers },

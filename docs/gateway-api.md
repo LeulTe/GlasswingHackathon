@@ -132,3 +132,34 @@ Start on `/discover`: select an authorized test environment, inspect, edit the a
 Run `GATEWAY_LIVE_STOREFRONTS=1 npx playwright test tests/gateway-live/ --output=test-results/live-storefronts` to check the real isolated browser against the supplied URLs, product/variant inspection, structured prices, and search. This opt-in suite makes no model calls and does not authenticate to Gateway; it is not proof of a completed AI scan. Observations are saved as `observations.json` in the test output. Saleor's supplied pagination cursor can return an empty page; the test follows its observed catalog link to recover.
 
 To exercise the real AI service as well, run `GATEWAY_LIVE_AI=1 npx playwright test tests/gateway-live/ai-workflow.spec.ts --output=test-results/live-ai`. This explicitly opts into billed OpenAI calls on both demo stores. It loads `.env.local`, uses isolated result storage, validates generated plans, executes sessions, and checks result API handlers. It does not create a Supabase account or bypass the running app’s authentication; signup and authenticated UI acceptance remain separate checks. Drafts, scans, traces and model metadata are retained in the test output.
+
+## Quantitative Overview bridge
+
+`GET /api/gateway/dashboard` includes a typed `readiness` object (see `lib/gateway/readiness.ts`). The Overview consumes this input for its score ring, sampled storefront counts, four category cards and trend. Existing scans need no migration or rerun: their persisted observations and independent evaluations are projected at read time.
+
+The overall score is `passed / (passed + failed)` for independently evaluated goals in the latest non-fixture scan. Inconclusive and unevaluated sessions are separate counts; no conclusive results means `score: null`, never an artificial zero. If only fixture scans exist, the entire panel is explicitly labeled. Trends contain at most five completed scans with the same origin, configured environment and fixture status. Different scenario sets can affect comparisons.
+
+Default category measurements are explicitly scoped: Discovery counts successful sampled browser actions, Security counts compliance of proposed shopper actions, and Compatibility counts product observations containing exactly one product with a structured price/currency. These are trace measurements, not whole-catalog coverage or a storefront security audit. Checkout remains unmeasured because the current runner cannot perform checkout.
+
+An independent evaluator or authenticated orchestration service can supply richer category results with `POST /api/gateway/scans/:id/readiness` after the scan stops:
+
+```json
+{
+  "category": "discovery",
+  "producer": "catalog-evaluator-v1",
+  "description": "Product discoverability checks in the sampled catalog.",
+  "unit": "product checks",
+  "checks": [
+    {
+      "id": "product-navigation",
+      "label": "Product reachable from the catalog",
+      "result": "pass",
+      "evidenceIds": ["<observation-or-trace-event-UUID-from-this-scan>"]
+    }
+  ]
+}
+```
+
+Categories are `discovery`, `checkout`, `security`, and `compatibility`; check results are `pass`, `fail`, or `unknown`. The server validates unique check IDs, owner access and evidence references, stamps receipt time, and persists one report per category (later submissions replace that category). It computes scores from checks rather than accepting a supplied percentage. The submitting evaluator is responsible for the factual validity of the checks; reference validation establishes provenance, not truth. Do not submit checkout passes using unrelated observations. Reports cannot change shopper permissions, session verdicts, or the overall goal score. The shopper has no reporting action and cannot grade itself.
+
+`GET /api/gateway/scans/:id/readiness` returns the scan's projected metrics, including evidence IDs and producer labels. Refreshing Overview reads accepted reports immediately. The old global in-memory `/api/discovery`, `/api/checkout`, `/api/security`, and `/api/compatibility` demo adapters do not feed these owner-scoped panels; agent producers should use the scan-specific bridge above.

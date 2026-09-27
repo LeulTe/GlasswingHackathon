@@ -294,8 +294,7 @@ export function DiscoverPage() {
           ))}
         </div>
       </section>
-
-      <p className="portal-hint">
+<p className="portal-hint">
         Your brief feeds the intake API; the buyer agents run on the next page, then open the
         storefront dashboard automatically.
       </p>

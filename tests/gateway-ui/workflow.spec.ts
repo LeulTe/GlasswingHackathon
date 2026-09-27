@@ -203,6 +203,15 @@ test('dashboard, sessions, replay and findings load persisted results across pag
 }) => {
   await page.goto(`${appOrigin}/dashboard`);
   await expect(page.getByRole('heading', { name: 'Storefront testing overview' })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Agent readiness overview', exact: true }),
+  ).toBeVisible();
+  await expect(page.locator('.readiness-grid .readiness-card')).toHaveCount(4);
+  await expect(page.locator('.gateway-category').filter({ hasText: 'Checkout' })).toContainText(
+    'Not yet measured',
+  );
+  await expect(page.getByRole('heading', { name: 'Agent readiness trend' })).toBeVisible();
+  await page.screenshot({ path: 'test-results/quantitative-overview.png', fullPage: true });
   await expect(page.getByRole('link', { name: 'View scan', exact: true })).toBeVisible();
   await page.reload();
   await page.getByRole('link', { name: 'View scan', exact: true }).click();
@@ -313,8 +322,10 @@ test('merged main retains demand simulation, visual demo replay and reporting pa
   await expect(
     page.getByText('Demo replay — illustrative storefront actions, not a recorded Gateway scan.'),
   ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Investigation view', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Safety controls held', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Watch visual replay' }).click();
-  await expect(page.getByRole('dialog')).toBeVisible();
+  await expect(page.getByRole('dialog')).toContainText('Visual replay · SES-10482');
   for (const [route, heading] of [
     ['analytics', 'Analytics'],
     ['security', 'Security'],
@@ -323,4 +334,130 @@ test('merged main retains demand simulation, visual demo replay and reporting pa
     await expect(page.getByRole('heading', { name: heading, exact: true })).toBeVisible();
   }
   expect(errors).toEqual([]);
+});
+
+test('evaluator reports feed quantitative blocks and inconclusive scores remain unmeasured', async ({
+  page,
+}) => {
+  const evidenceId = savedScan.sessions[0].trace.find((event) => event.observation)!.observation!
+    .id;
+  const response = await page.request.post(
+    `${appOrigin}/api/gateway/scans/${savedScan.id}/readiness`,
+    {
+      data: {
+        category: 'compatibility',
+        producer: 'independent-schema-evaluator',
+        description: 'Explicit product schema checks.',
+        unit: 'schema checks',
+        checks: [
+          { id: 'price', label: 'Price present', result: 'pass', evidenceIds: [evidenceId] },
+          { id: 'currency', label: 'Currency missing', result: 'fail', evidenceIds: [evidenceId] },
+          {
+            id: 'coverage',
+            label: 'Coverage unknown',
+            result: 'unknown',
+            evidenceIds: [evidenceId],
+          },
+        ],
+      },
+    },
+  );
+  expect(response.status()).toBe(200);
+  await page.goto(`${appOrigin}/dashboard`);
+  const card = page.locator('.gateway-category').filter({ hasText: 'Compatibility' });
+  await expect(card).toContainText('50%');
+  await expect(card).toContainText('independent-schema-evaluator');
+  await page.reload();
+  await expect(card).toContainText('50%');
+  const payload = await (await page.request.get(`${appOrigin}/api/gateway/dashboard`)).json();
+  payload.data.readiness.score = null;
+  payload.data.readiness.passed = 0;
+  payload.data.readiness.failed = 0;
+  payload.data.readiness.inconclusive = 3;
+  payload.data.readiness.trend = payload.data.readiness.trend.map((point: unknown) => ({
+    ...(point as object),
+    score: null,
+  }));
+  await page.route('**/api/gateway/dashboard', (route) => route.fulfill({ json: payload }));
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'More evidence needed' })).toBeVisible();
+  await expect(page.getByRole('img', { name: 'Goal readiness: not yet measured' })).toBeVisible();
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await expect(page.locator('.sidebar')).not.toBeInViewport();
+  await page.screenshot({
+    path: 'test-results/quantitative-overview-mobile.png',
+    fullPage: true,
+    animations: 'disabled',
+  });
+});
+
+test('all workspace and authentication pages share responsive visual layouts', async ({
+  page,
+  browser,
+}, info) => {
+  test.setTimeout(240_000);
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  const routes = [
+    'dashboard',
+    'discover',
+    `scan?scanId=${savedScan.id}`,
+    'demand-signal',
+    'sessions',
+    'replays',
+    `replays/${savedScan.sessions[0].id}`,
+    'replays/SES-10482',
+    'recommendations',
+    'security',
+    'analytics',
+    'integrations',
+    'settings',
+    'replays/SES-invalid',
+  ];
+  for (const width of [1440, 390, 900]) {
+    await page.setViewportSize({ width, height: 1000 });
+    for (const [index, route] of routes.entries()) {
+      await page.goto(`${appOrigin}/${route}`);
+      await expect(page.locator('h1').first()).toBeVisible();
+      await expect(page.locator('[role="status"]').filter({ hasText: /Loading/ })).toHaveCount(0);
+      await expect(page.locator('body')).not.toContainText('Application error');
+      await expect
+        .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), {
+          message: `${route} overflows at ${width}px`,
+        })
+        .toBe(true);
+      if (width === 390 && route !== 'discover')
+        await expect(page.locator('.sidebar')).not.toBeInViewport();
+      await page.screenshot({
+        path: info.outputPath(
+          `${width}-${String(index).padStart(2, '0')}-${route.split('?')[0].replaceAll('/', '-')}.png`,
+        ),
+        fullPage: true,
+        animations: 'disabled',
+      });
+    }
+  }
+  expect(errors).toEqual([]);
+  const anonymous = await browser.newContext();
+  try {
+    const auth = await anonymous.newPage();
+    for (const width of [1440, 390]) {
+      await auth.setViewportSize({ width, height: 1000 });
+      for (const route of ['login', 'signup']) {
+        await auth.goto(`${appOrigin}/${route}`);
+        await expect(auth.getByLabel('Work email')).toBeVisible();
+        expect(await auth.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+          true,
+        );
+        await auth.screenshot({
+          path: info.outputPath(`${width}-${route}.png`),
+          fullPage: true,
+          animations: 'disabled',
+        });
+      }
+    }
+  } finally {
+    await anonymous.close();
+  }
 });
