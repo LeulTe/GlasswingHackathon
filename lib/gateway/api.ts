@@ -280,6 +280,7 @@ export async function handleGateway(
         },
         { status: 400, headers },
       );
+    if (!isGatewayError(error)) console.error('[gateway] unhandled error', error);
     return Response.json(
       { apiVersion: 'v1', error: publicError(error) },
       { status: isGatewayError(error) ? error.status : 500, headers },

@@ -6875,6 +6875,82 @@ svg {
 .gateway-details dt {
   color: #68748a;
 }
+/* Scan economics */
+.economics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+.economics-stat {
+  border: 1px solid #eaedf2;
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.economics-stat > span {
+  font-size: 11px;
+  color: #7a8595;
+  font-weight: 550;
+}
+.economics-stat > strong {
+  font-size: 19px;
+  letter-spacing: -0.4px;
+}
+.economics-stat > strong small {
+  font-size: 12px;
+  font-weight: 400;
+  color: #7a8595;
+  letter-spacing: 0;
+}
+.economics-stat.highlight {
+  background: #f2f6fd;
+  border-color: #dfe8f7;
+}
+.economics-baseline {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid #edf0f5;
+}
+.economics-baseline h3 {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+.economics-compare {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+.economics-compare > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: #f7f8fa;
+}
+.economics-compare > div:last-child {
+  background: #eef8f4;
+}
+.economics-compare span {
+  font-size: 11px;
+  color: #7a8595;
+  font-weight: 550;
+}
+.economics-compare strong {
+  font-size: 15px;
+}
+.economics-compare small {
+  font-size: 11px;
+  color: #7a8595;
+  line-height: 1.5;
+}
+.economics-note {
+  font-size: 11px;
+  color: #7a8595;
+}
 @media (max-width: 760px) {
   .gateway-form-grid,
   .gateway-replay-layout {

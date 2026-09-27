@@ -9,6 +9,7 @@ import {
   type FindingResult,
 } from '@/lib/gateway/client';
 import type { Scan, Session } from '@/lib/gateway/schemas';
+import { ScanEconomics } from './scan-economics';
 
 export function useGatewayData<T>(path: string | null, version: unknown = 0) {
   const [data, setData] = useState<T | null>(null);
@@ -159,6 +160,7 @@ export function ScanResults({ scan }: { scan: Scan }) {
           </div>
         </div>
       </Card>
+      <ScanEconomics scan={scan} />
       <Card>
         <CardHeader title="Shopper sessions" />
         <div className="gateway-table-wrap">
