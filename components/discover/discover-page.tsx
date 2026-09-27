@@ -21,6 +21,20 @@ export function DiscoverPage() {
           goals, then observe isolated agents attempting them.
         </p>
       </section>
+      <div className="workflow-guide" aria-label="Testing workflow">
+        <div>
+          <strong>01</strong>
+          <span>Inspect storefront</span>
+        </div>
+        <div>
+          <strong>02</strong>
+          <span>Review test plan</span>
+        </div>
+        <div>
+          <strong>03</strong>
+          <span>Observe & improve</span>
+        </div>
+      </div>
       <GatewayWorkflow />
     </div>
   );

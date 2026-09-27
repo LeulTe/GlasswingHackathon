@@ -88,7 +88,7 @@ export function FindingsList({ findings }: { findings: FindingResult[] }) {
       />
       {findings.length ? (
         findings.map((finding) => (
-          <article className="gateway-finding" key={finding.id}>
+          <article className="gateway-finding" data-severity={finding.severity} key={finding.id}>
             <div className="gateway-toolbar">
               <StatusBadge tone={finding.severity === 'high' ? 'red' : 'amber'}>
                 {finding.severity}

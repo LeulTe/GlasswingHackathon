@@ -96,6 +96,7 @@ export function AppSidebar({
               href={item.href}
               onClick={onClose}
               className={cn('nav-item', path.startsWith(item.href) && 'active')}
+              aria-current={path.startsWith(item.href) ? 'page' : undefined}
             >
               <item.icon size={17} strokeWidth={1.7} />
               <span>{item.label}</span>
@@ -111,6 +112,7 @@ export function AppSidebar({
               href={item.href}
               onClick={onClose}
               className={cn('nav-item', path.startsWith(item.href) && 'active')}
+              aria-current={path.startsWith(item.href) ? 'page' : undefined}
             >
               <item.icon size={17} strokeWidth={1.7} />
               {item.label}

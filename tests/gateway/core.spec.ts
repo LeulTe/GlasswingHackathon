@@ -705,3 +705,73 @@ test('saved draft listing is owner-scoped and configured public origins work beh
   expect(response.status).toBe(404);
   expect((await response.json()).error.code).toBe('NOT_FOUND');
 });
+
+test('readiness bridge persists evaluator inputs with ownership and evidence validation', async () => {
+  const scan = (await service.store.listScans('merchant-a')).find(
+    (s) => s.draft.id === draft.id && s.status === 'completed',
+  )!;
+  const path = ['scans', scan.id, 'readiness'];
+  const report = {
+    category: 'discovery',
+    producer: 'catalog-evaluator-v1',
+    description: 'Sampled discoverability checks.',
+    unit: 'catalog checks',
+    checks: [
+      {
+        id: 'one',
+        label: 'Observed product',
+        result: 'pass',
+        evidenceIds: [scan.draft.evidence[0].id],
+      },
+      {
+        id: 'two',
+        label: 'Missing coverage',
+        result: 'unknown',
+        evidenceIds: [scan.draft.evidence[0].id],
+      },
+    ],
+  };
+  const post = (owner: string, data: unknown) =>
+    handleGateway(
+      new Request(`http://gateway.test/api/gateway/${path.join('/')}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      }),
+      path,
+      async () => owner,
+      service,
+    );
+  expect((await post('merchant-b', report)).status).toBe(404);
+  expect(
+    (
+      await post('merchant-a', {
+        ...report,
+        checks: [{ ...report.checks[0], evidenceIds: ['00000000-0000-4000-8000-000000000099'] }],
+      })
+    ).status,
+  ).toBe(422);
+  expect((await post('merchant-a', { ...report, score: 100 })).status).toBe(400);
+  expect(
+    (await post('merchant-a', { ...report, checks: [report.checks[0], report.checks[0]] })).status,
+  ).toBe(400);
+  expect((await post('merchant-a', report)).status).toBe(200);
+  const stored = await new FileStore(directory).get('scan', 'merchant-a', scan.id);
+  expect(stored.categoryReports?.[0].producer).toBe('catalog-evaluator-v1');
+  const response = await handleGateway(
+    new Request(`http://gateway.test/api/gateway/dashboard?scanId=${scan.id}`),
+    ['dashboard'],
+    async () => 'merchant-a',
+    service,
+  );
+  const data = (await response.json()).data.readiness;
+  expect(data.categories[0]).toMatchObject({
+    score: 100,
+    passed: 1,
+    unknown: 1,
+    total: 2,
+    source: 'catalog-evaluator-v1',
+  });
+  expect(data.categories.find((c: { id: string }) => c.id === 'checkout').score).toBeNull();
+  expect(data.fixture).toBe(true);
+});

@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import { QuantitativeOverview } from './quantitative-overview';
 import { PageHeading } from '@/components/ui/page-heading';
 import { MetricCard } from '@/components/ui/metric-card';
 import { Button, Card, CardHeader, EmptyState, StatusBadge } from '@/components/ui/primitives';
@@ -24,6 +25,7 @@ export function GatewayDashboard() {
       {loading && !dashboard && <p role="status">Loading scan history…</p>}
       {dashboard && (
         <>
+          <QuantitativeOverview data={dashboard.readiness} />
           <div className="metrics-grid four">
             <MetricCard
               label="Scans"
@@ -36,9 +38,9 @@ export function GatewayDashboard() {
               detail={`${dashboard.fixtureSessions} explicitly labeled fixtures`}
             />
             <MetricCard
-              label="Evaluated goal pass rate"
-              value={dashboard.passRate === null ? '—' : `${Math.round(dashboard.passRate * 100)}%`}
-              detail={`${dashboard.evaluatedSessions} evaluated non-fixture sessions`}
+              label="Inconclusive outcomes"
+              value={String(dashboard.readiness.inconclusive)}
+              detail="Latest scan · awaiting sufficient evidence"
             />
             <MetricCard
               label="Estimated model cost"

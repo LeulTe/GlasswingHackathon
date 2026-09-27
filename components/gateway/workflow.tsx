@@ -153,6 +153,11 @@ export function GatewayWorkflow() {
   return (
     <div className="gateway-stack">
       <Card className="gateway-panel">
+        <div className="gateway-entry-heading">
+          <div className="eyebrow">NEW TEST RUN</div>
+          <h2>Choose your storefront</h2>
+          <p>Select an authorized environment and the page you want to explore.</p>
+        </div>
         <fieldset className="gateway-review" disabled={!!busy || running}>
           <div className="gateway-form-row">
             <label>

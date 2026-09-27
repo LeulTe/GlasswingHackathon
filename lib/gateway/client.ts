@@ -35,6 +35,7 @@ export interface ScanSummary {
   usage: Usage;
 }
 export interface DashboardData {
+  readiness: import('./readiness').ReadinessOverview;
   scans: ScanSummary[];
   totalScans: number;
   totalSessions: number;
